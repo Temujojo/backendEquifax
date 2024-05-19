@@ -5,9 +5,9 @@ import json
 
 # Create your views here.
 def technologies(request):
-    if request.method == 'GET':
+    if request.method == 'GET' and request.GET.get('id'):
         technologies = Technology.objects.all()
-        if(technologies.count() == 0):
+        if(technologies.count() == 0 ):
             return HttpResponseNotFound('No se encontraron tecnologías')
         else:
             selected = Technology.objects.get(id=request.GET.get('id'))
@@ -19,12 +19,13 @@ def technologies(request):
         q.save()
         return JsonResponse(model_to_dict(q))
     else:
-        return HttpResponseBadRequest('Bad request')
+        return HttpResponseBadRequest('Bad request. Missing parameter [id]')
     
 def jobs(request):
-    if request.method == 'GET':
+    if request.method == 'GET' and request.GET.get('id'):
         jobs = Job.objects.all()
-        if(jobs.count()== 0):
+        filtrado = Job.objects.filter(id=request.GET.get('id'))
+        if(jobs.count() == 0 and filtrado.count() == 0):
             return HttpResponseNotFound('No se encontraron trabajos')
         else:
             selected = model_to_dict(Job.objects.get(id=request.GET.get('id')))
@@ -42,4 +43,4 @@ def jobs(request):
         q.save()
         return JsonResponse(model_to_dict(q))
     else:
-        return HttpResponseBadRequest('Bad request')
+        return HttpResponseBadRequest('Bad request, Missing parameter [id]')
