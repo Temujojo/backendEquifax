@@ -2,5 +2,6 @@ from django.urls import path
 from . import views
 
 urlpatterns = [
-    path('', views.get_jobs, name="getJobs")
+    path('', views.jobs, name="jobs"),
+    path('technologies/',views.technologies, name="technologies"),
 ]
