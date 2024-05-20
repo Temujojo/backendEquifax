@@ -1,5 +1,6 @@
-from django.http import JsonResponse, HttpResponseBadRequest, HttpResponseNotFound
+from django.http import JsonResponse, HttpResponseNotFound, HttpResponse
 from django.forms.models import model_to_dict
+from django.core import serializers
 from .models import Technology, Job
 import json
 
@@ -12,14 +13,16 @@ def technologies(request):
         else:
             selected = Technology.objects.get(id=request.GET.get('id'))
             return JsonResponse(model_to_dict(selected))
+    elif request.method == 'GET':
+        technologies = Technology.objects.all()
+        technologies_json = serializers.serialize('json', technologies)
+        return HttpResponse(technologies_json)
     elif request.method == 'POST':
         body_unicode = request.body.decode('utf-8')
         body = json.loads(body_unicode)
-        q = Technology(name=body['technology'])
+        q = Technology(name=body['name'])
         q.save()
         return JsonResponse(model_to_dict(q))
-    else:
-        return HttpResponseBadRequest('Bad request. Missing parameter [id]')
     
 def jobs(request):
     if request.method == 'GET' and request.GET.get('id'):
@@ -30,7 +33,11 @@ def jobs(request):
         else:
             selected = model_to_dict(Job.objects.get(id=request.GET.get('id')))
             return JsonResponse(selected)
-    elif(request.method == 'POST'):
+    elif request.method == 'GET':
+        jobs = Job.objects.all()
+        jobs_josn= serializers.serialize('json',jobs)
+        return HttpResponse(jobs_josn)
+    elif request.method == 'POST':
         body_unicode = request.body.decode('utf-8')
         body = json.loads(body_unicode)
         technologies = Technology.objects.filter(id=body['technologies']).get()
@@ -38,9 +45,14 @@ def jobs(request):
             title=body['title'],
             technologies=technologies, 
             status=body['status'], 
-            published = body['published']
+            published = body['published'],
+            description = body['description']
             )
         q.save()
-        return JsonResponse(model_to_dict(q))
-    else:
-        return HttpResponseBadRequest('Bad request, Missing parameter [id]')
+        return JsonResponse({
+            "title": q.title,
+            "technologies": q.technologies.name,
+            "status":q.status,
+            "published":q.published,
+            "description":q.description
+        })
